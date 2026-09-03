@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>線上聯絡簿</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF8ED;
+    --ink:#4A3B2A;
+    --school-bg:#DCEFFB;
+    --school-border:#8FC7E8;
+    --holiday-bg:#FFE1D6;
+    --holiday-border:#F4A387;
+    --override-badge:#FFC94A;
+    --today-ring:#5FBE8A;
+    --card-bg:#FFFFFF;
+    --accent:#F4886B;
+    --accent-2:#5FBE8A;
+    --shadow: 0 4px 0 rgba(74,59,42,0.12);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--cream);
+    background-image:
+      radial-gradient(circle at 8% 12%, #FFE9C7 0 40px, transparent 41px),
+      radial-gradient(circle at 92% 18%, #D9F2E3 0 32px, transparent 33px),
+      radial-gradient(circle at 85% 88%, #FFD9E8 0 36px, transparent 37px);
+    color:var(--ink);
+    font-family:'Noto Sans TC', sans-serif;
+    padding: clamp(12px, 3vw, 32px);
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{ max-width:1100px; margin:0 auto; }
+
+  header.hero{
+    background:var(--card-bg);
+    border-radius:28px;
+    padding: clamp(18px,3vw,28px) clamp(18px,4vw,34px);
+    box-shadow:var(--shadow);
+    border:3px solid #F1E4CC;
+    display:flex; flex-wrap:wrap; align-items:center; gap:16px 20px;
+    margin-bottom:18px;
+  }
+  header.hero .title-block{ flex:1 1 260px; }
+  h1{
+    font-family:'ZCOOL KuaiLe', 'Noto Sans TC', sans-serif;
+    font-size:clamp(1.6rem, 4vw, 2.4rem);
+    margin:0 0 4px 0;
+    color:var(--accent);
+    line-height:1.2;
+  }
+  #className{
+    font-size:clamp(1rem,2.4vw,1.15rem);
+    border:2px dashed #E7D3AE;
+    background:#FFFBF2;
+    border-radius:14px;
+    padding:6px 12px;
+    font-weight:700;
+    color:var(--ink);
+    width:min(320px, 100%);
+  }
+  .sub{ font-size:clamp(0.95rem,2vw,1.05rem); color:#8A7457; margin-top:4px;}
+
+  .controls{
+    background:var(--card-bg);
+    border-radius:24px;
+    padding:16px clamp(14px,3vw,24px);
+    box-shadow:var(--shadow);
+    border:3px solid #F1E4CC;
+    display:flex; flex-wrap:wrap; align-items:end; gap:14px 22px;
+    margin-bottom:18px;
+  }
+  .field{ display:flex; flex-direction:column; gap:4px; }
+  .field label{ font-size:0.95rem; font-weight:700; color:#8A7457;}
+  .field input{
+    font-family:inherit; font-size:1.05rem; padding:8px 12px;
+    border-radius:12px; border:2px solid #E7D3AE; background:#FFFDF8;
+    color:var(--ink);
+  }
+  .field input:focus{ outline:3px solid #FFDDA8; border-color:var(--accent-2);}
+  button.btn{
+    font-family:'Noto Sans TC', sans-serif; font-weight:700; font-size:1.02rem;
+    cursor:pointer; border:none; border-radius:16px; padding:11px 20px;
+    color:#fff; background:var(--accent); box-shadow:0 3px 0 #C96246;
+    transition: transform .05s ease;
+  }
+  button.btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #C96246;}
+  button.btn.secondary{ background:var(--accent-2); box-shadow:0 3px 0 #3C8F63;}
+  button.btn.secondary:active{ box-shadow:0 1px 0 #3C8F63;}
+  #status{ font-size:0.9rem; color:#8A7457; }
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:10px 18px; align-items:center;
+    font-size:0.95rem; margin-bottom:18px; padding:0 4px;
+  }
+  .legend span{ display:inline-flex; align-items:center; gap:6px; font-weight:700;}
+  .swatch{ width:18px; height:18px; border-radius:6px; display:inline-block; border:2px solid rgba(0,0,0,0.08);}
+
+  .week{
+    background:var(--card-bg);
+    border-radius:24px;
+    box-shadow:var(--shadow);
+    border:3px solid #F1E4CC;
+    padding:14px;
+    margin-bottom:18px;
+  }
+  .week-label{
+    font-family:'ZCOOL KuaiLe','Noto Sans TC',sans-serif;
+    font-size:1.05rem; color:var(--accent-2); font-weight:700;
+    padding:2px 10px 10px 6px;
+  }
+  .days{
+    display:grid;
+    grid-template-columns:repeat(7, 1fr);
+    gap:10px;
+  }
+  .day{
+    border-radius:18px;
+    padding:10px;
+    min-height:150px;
+    display:flex; flex-direction:column; gap:6px;
+    background:var(--school-bg);
+    border:3px solid var(--school-border);
+    position:relative;
+  }
+  .day.holiday{ background:var(--holiday-bg); border-color:var(--holiday-border); }
+  .day.today{
+    outline:4px solid var(--today-ring);
+    outline-offset:2px;
+    box-shadow:0 0 0 4px #E6F8EE;
+  }
+  .day-top{ display:flex; justify-content:space-between; align-items:flex-start; }
+  .date-badge{
+    font-weight:900; font-size:1.15rem; line-height:1;
+    background:rgba(255,255,255,0.75); border-radius:10px; padding:3px 8px;
+  }
+  .weekday-name{ font-size:0.85rem; font-weight:700; opacity:0.75; margin-top:2px;}
+  .today-flag{
+    font-size:0.72rem; background:var(--today-ring); color:#fff; font-weight:700;
+    border-radius:8px; padding:2px 6px; white-space:nowrap;
+  }
+  .desc-tag{ font-size:0.72rem; font-weight:700; color:#8A5A3C; opacity:0.85; min-height:14px;}
+  .override-btn{
+    align-self:flex-start;
+    font-size:0.72rem; font-weight:700; cursor:pointer;
+    background:var(--override-badge); border:none; border-radius:8px;
+    padding:2px 8px; color:#5A4321;
+  }
+  textarea{
+    font-family:'Noto Sans TC', sans-serif;
+    width:100%; resize:vertical; border-radius:10px; border:2px solid rgba(0,0,0,0.08);
+    background:rgba(255,255,255,0.8); font-size:0.95rem; padding:6px 8px; min-height:38px;
+    color:var(--ink);
+  }
+  textarea::placeholder{ color:#A8977E; }
+  .lbl{ font-size:0.72rem; font-weight:700; color:#8A7457; }
+
+  footer{ text-align:center; font-size:0.85rem; color:#A8977E; margin:24px 0 6px; }
+
+  @media (max-width: 760px){
+    .days{ grid-template-columns:1fr; }
+    .day{ flex-direction:column; min-height:auto; }
+    .day-top{ align-items:center; }
+  }
+
+  @media print{
+    .controls, footer, .override-btn{ display:none !important; }
+    body{ background:#fff; }
+    .week{ break-inside:avoid; box-shadow:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="title-block">
+      <h1>📖 線上聯絡簿</h1>
+      <input id="className" placeholder="輸入班級／科目名稱，例如：三年一班 資訊課">
+      <div class="sub">功課與叮嚀，一週一目瞭然 🌟</div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="field">
+      <label for="startDate">學期開始（星期一）</label>
+      <input type="date" id="startDate">
+    </div>
+    <div class="field">
+      <label for="weekCount">產生週數</label>
+      <input type="number" id="weekCount" min="1" max="40" value="20" style="width:90px">
+    </div>
+    <button class="btn" id="genBtn">📅 產生聯絡簿</button>
+    <button class="btn secondary" id="syncBtn">🔄 同步國定行事曆</button>
+    <button class="btn secondary" id="printBtn">🖨️ 列印</button>
+    <span id="status"></span>
+  </div>
+
+  <div class="legend">
+    <span><i class="swatch" style="background:var(--school-bg);border-color:var(--school-border)"></i>上課日</span>
+    <span><i class="swatch" style="background:var(--holiday-bg);border-color:var(--holiday-border)"></i>假日</span>
+    <span><i class="swatch" style="background:#fff;outline:3px solid var(--today-ring)"></i>今天</span>
+    <span><i class="swatch" style="background:var(--override-badge)"></i>手動調整過</span>
+  </div>
+
+  <div id="calendar"></div>
+
+  <footer>假日資料來源：中華民國政府行政機關辦公日曆表（TaiwanCalendar 開放資料）。停班停課等臨時異動請點選日期上的「調整」按鈕手動修正。</footer>
+</div>
+
+<script>
+const WEEKDAY_NAMES = ['一','二','三','四','五','六','日'];
+const STORE_PREFIX = 'contactbook_v1_';
+const todayStr = fmtDate(new Date());
+
+function fmtDate(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}${m}${day}`;
+}
+function fmtDisplay(d){
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+function mondayOf(date){
+  const d = new Date(date);
+  const dow = d.getDay(); // 0=Sun..6=Sat
+  const diff = (dow === 0) ? -6 : (1 - dow);
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+// ---------- storage helpers ----------
+function loadJSON(key, fallback){
+  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; }
+}
+function saveJSON(key, val){
+  try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+}
+
+function getCalendarYear(year){
+  return loadJSON(STORE_PREFIX+'cal_'+year, null);
+}
+function setCalendarYear(year, data){
+  saveJSON(STORE_PREFIX+'cal_'+year, data);
+}
+
+async function fetchYear(year){
+  const url = `https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/${year}.json`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('無法取得 '+year+' 年資料');
+  const arr = await res.json();
+  const map = {};
+  arr.forEach(item => { map[item.date] = { isHoliday: item.isHoliday, description: item.description || '' }; });
+  return map;
+}
+
+async function ensureYears(years, statusEl){
+  for(const y of years){
+    if(!getCalendarYear(y)){
+      try{
+        statusEl.textContent = `下載 ${y} 年行事曆中…`;
+        const data = await fetchYear(y);
+        setCalendarYear(y, data);
+      }catch(e){
+        statusEl.textContent = `⚠️ ${y} 年行事曆下載失敗（可能尚未公告或無網路）`;
+      }
+    }
+  }
+}
+
+function calendarLookup(dateStr){
+  const year = dateStr.slice(0,4);
+  const data = getCalendarYear(year);
+  if(!data) return null;
+  return data[dateStr] || null;
+}
+
+// ---------- override + content ----------
+function getOverride(dateStr){ return loadJSON(STORE_PREFIX+'ov_'+dateStr, 'auto'); }
+function setOverride(dateStr, val){ saveJSON(STORE_PREFIX+'ov_'+dateStr, val); }
+function getContent(dateStr){ return loadJSON(STORE_PREFIX+'txt_'+dateStr, {hw:'', notice:''}); }
+function setContent(dateStr, obj){ saveJSON(STORE_PREFIX+'txt_'+dateStr, obj); }
+
+function isHolidayFor(dateStr, jsDate){
+  const ov = getOverride(dateStr);
+  if(ov === 'holiday') return true;
+  if(ov === 'school') return false;
+  const cal = calendarLookup(dateStr);
+  if(cal) return !!cal.isHoliday;
+  const dow = jsDate.getDay();
+  return dow === 0 || dow === 6;
+}
+
+// ---------- render ----------
+function buildDayCell(jsDate){
+  const dateStr = fmtDate(jsDate);
+  const holiday = isHolidayFor(dateStr, jsDate);
+  const ov = getOverride(dateStr);
+  const cal = calendarLookup(dateStr);
+  const isToday = dateStr === todayStr;
+
+  const cell = document.createElement('div');
+  cell.className = 'day' + (holiday ? ' holiday' : '') + (isToday ? ' today' : '');
+
+  const top = document.createElement('div');
+  top.className = 'day-top';
+  const badgeWrap = document.createElement('div');
+  badgeWrap.innerHTML = `<div class="date-badge">${fmtDisplay(jsDate)}</div><div class="weekday-name">星期${WEEKDAY_NAMES[jsDate.getDay()===0?6:jsDate.getDay()-1]}</div>`;
+  top.appendChild(badgeWrap);
+  if(isToday){
+    const flag = document.createElement('div'); flag.className='today-flag'; flag.textContent='今天'; top.appendChild(flag);
+  }
+  cell.appendChild(top);
+
+  const descTag = document.createElement('div');
+  descTag.className = 'desc-tag';
+  descTag.textContent = cal && cal.description ? cal.description : '';
+  cell.appendChild(descTag);
+
+  const ovBtn = document.createElement('button');
+  ovBtn.className = 'override-btn';
+  ovBtn.textContent = ov === 'auto' ? '⚙️ 依行事曆' : (ov === 'holiday' ? '🏖️ 已設為假日' : '🏫 已設為上課日');
+  ovBtn.onclick = () => {
+    const next = ov === 'auto' ? 'holiday' : (ov === 'holiday' ? 'school' : 'auto');
+    setOverride(dateStr, next);
+    render();
+  };
+  cell.appendChild(ovBtn);
+
+  const content = getContent(dateStr);
+
+  const hwLbl = document.createElement('div'); hwLbl.className='lbl'; hwLbl.textContent='📚 功課';
+  const hwBox = document.createElement('textarea');
+  hwBox.placeholder = '例如：數習 p.10-12';
+  hwBox.value = content.hw;
+  hwBox.oninput = () => setContent(dateStr, {hw: hwBox.value, notice: content.notice = noticeBox.value});
+
+  const noticeLbl = document.createElement('div'); noticeLbl.className='lbl'; noticeLbl.textContent='📣 聯絡事項';
+  const noticeBox = document.createElement('textarea');
+  noticeBox.placeholder = '例如：數學考卷請家長簽名';
+  noticeBox.value = content.notice;
+  noticeBox.oninput = () => setContent(dateStr, {hw: hwBox.value, notice: noticeBox.value});
+
+  cell.appendChild(hwLbl); cell.appendChild(hwBox);
+  cell.appendChild(noticeLbl); cell.appendChild(noticeBox);
+
+  return cell;
+}
+
+function render(){
+  const startInput = document.getElementById('startDate').value;
+  const weekCount = parseInt(document.getElementById('weekCount').value, 10) || 1;
+  if(!startInput) return;
+  const start = mondayOf(new Date(startInput+'T00:00:00'));
+
+  const calRoot = document.getElementById('calendar');
+  calRoot.innerHTML = '';
+
+  for(let w=0; w<weekCount; w++){
+    const weekStart = new Date(start);
+    weekStart.setDate(start.getDate() + w*7);
+    const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6);
+
+    const weekEl = document.createElement('div');
+    weekEl.className = 'week';
+    const label = document.createElement('div');
+    label.className = 'week-label';
+    label.textContent = `第 ${w+1} 週　${fmtDisplay(weekStart)} ～ ${fmtDisplay(weekEnd)}`;
+    weekEl.appendChild(label);
+
+    const daysEl = document.createElement('div');
+    daysEl.className = 'days';
+    for(let d=0; d<7; d++){
+      const jsDate = new Date(weekStart);
+      jsDate.setDate(weekStart.getDate()+d);
+      daysEl.appendChild(buildDayCell(jsDate));
+    }
+    weekEl.appendChild(daysEl);
+    calRoot.appendChild(weekEl);
+  }
+}
+
+async function generate(){
+  const status = document.getElementById('status');
+  const startInput = document.getElementById('startDate').value;
+  const weekCount = parseInt(document.getElementById('weekCount').value, 10) || 1;
+  if(!startInput){ status.textContent = '請先選擇開始日期'; return; }
+  const start = mondayOf(new Date(startInput+'T00:00:00'));
+  const end = new Date(start); end.setDate(start.getDate() + weekCount*7);
+  const years = new Set([start.getFullYear(), end.getFullYear()]);
+  await ensureYears([...years], status);
+  status.textContent = '✅ 已就緒';
+  render();
+}
+
+document.getElementById('genBtn').onclick = generate;
+document.getElementById('printBtn').onclick = () => window.print();
+document.getElementById('syncBtn').onclick = async () => {
+  const status = document.getElementById('status');
+  const startInput = document.getElementById('startDate').value;
+  const weekCount = parseInt(document.getElementById('weekCount').value, 10) || 1;
+  if(!startInput) return;
+  const start = mondayOf(new Date(startInput+'T00:00:00'));
+  const end = new Date(start); end.setDate(start.getDate() + weekCount*7);
+  const years = [start.getFullYear(), end.getFullYear()];
+  for(const y of years){
+    try{
+      status.textContent = `重新下載 ${y} 年行事曆…`;
+      const data = await fetchYear(y);
+      setCalendarYear(y, data);
+    }catch(e){
+      status.textContent = `⚠️ ${y} 年行事曆下載失敗`;
+    }
+  }
+  status.textContent = '✅ 行事曆已更新';
+  render();
+};
+
+// init defaults: this week's Monday, restore saved className
+(function init(){
+  document.getElementById('startDate').value = fmtDate(mondayOf(new Date())).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+  const savedName = loadJSON(STORE_PREFIX+'className', '');
+  if(savedName) document.getElementById('className').value = savedName;
+  document.getElementById('className').oninput = (e) => saveJSON(STORE_PREFIX+'className', e.target.value);
+  generate();
+})();
+</script>
+</body>
+</html>
